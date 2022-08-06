@@ -9,13 +9,13 @@ on:
   push:
     branches:
       - main
-    path:
+    paths:
       - .github/workflows/test.yml
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment:
+    env:
       COMMIT_HASH_FILE: last-commit-hash
       GITHUB_REPO_URL: https://github.com/NationalSecurityAgency/ghidra/
 
