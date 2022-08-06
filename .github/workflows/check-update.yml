@@ -1,6 +1,4 @@
-# This is a basic workflow to help you get started with Actions
-
-name: test
+name: check-update
 
 on:
   workflow_dispatch:
@@ -10,7 +8,7 @@ on:
     branches:
       - main
     paths:
-      - .github/workflows/test.yml
+      - .github/workflows/check-update.yml
 
 jobs:
   build:
