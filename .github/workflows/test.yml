@@ -6,10 +6,18 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 3 * * *"
+  push:
+    branches:
+      - main
+    path:
+      - .github/workflows/test.yml
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment:
+      COMMIT_HASH_FILE: last-commit-hash
+      GITHUB_REPO_URL: https://github.com/NationalSecurityAgency/ghidra/
 
     steps:
       - uses: actions/checkout@v3
@@ -18,16 +26,16 @@ jobs:
         run: |
           git config --global user.email "13070+topia@users.noreply.github.com"
           git config --global user.name "Tatsuya Noda"
-          commit="$(git ls-remote https://github.com/NationalSecurityAgency/ghidra.git HEAD | cut -f1)"
-          COMMIT_HASH_FILE=last-commit-hash
+          commit="$(git ls-remote ${GITHUB_REPO_URL%/}.git HEAD | cut -f1)"
           echo "$commit" > "$COMMIT_HASH_FILE"
           git add "$COMMIT_HASH_FILE"
-          if git commit -m "update to $commit: https://github.com/NationalSecurityAgency/ghidra/tree/$commit"; then
+          if git commit -m "update to $commit: ${GITHUB_REPO_URL%/}/tree/$commit"; then
             git push origin HEAD
           fi
 
       - name: Add tag
         run: |
+          commit="$(cat $COMMIT_HASH_FILE)"
           TAG_NAME="snapshot-$(date +%Y-%m-%d-%H)"
-          git tag -a "$TAG_NAME" -m "tag to build $commit: https://github.com/NationalSecurityAgency/ghidra/tree/$commit"
+          git tag -a "$TAG_NAME" -m "tag to build $commit: ${GITHUB_REPO_URL%/}/tree/$commit"
           git push origin "$TAG_NAME"
