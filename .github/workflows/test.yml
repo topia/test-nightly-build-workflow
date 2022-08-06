@@ -37,5 +37,8 @@ jobs:
         run: |
           commit="$(cat $COMMIT_HASH_FILE)"
           TAG_NAME="snapshot-$(date +%Y-%m-%d-%H)"
-          git tag -a "$TAG_NAME" -m "tag to build $commit: ${GITHUB_REPO_URL%/}/tree/$commit"
+          git tag -a "$TAG_NAME" -m "tag to build $commit
+          
+          commit: $commit
+          tree: ${GITHUB_REPO_URL%/}/tree/$commit"
           git push origin "$TAG_NAME"
