@@ -22,6 +22,8 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Update to latest hash
         run: |
+          git config --global user.email "13070+topia@users.noreply.github.com"
+          git config --global user.name "Tatsuya Noda"
           commit="$(git ls-remote https://github.com/NationalSecurityAgency/ghidra.git HEAD | cut -f1)"
           COMMIT_HASH_FILE=last-commit-hash
           echo "$commit" > "$COMMIT_HASH_FILE"
