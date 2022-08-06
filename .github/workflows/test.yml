@@ -2,24 +2,18 @@
 
 name: test
 
-# Controls when the workflow will run
 on:
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * *"
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
       
-      # Runs a set of commands using the runners shell
       - name: Update to latest hash
         run: |
           git config --global user.email "13070+topia@users.noreply.github.com"
@@ -30,3 +24,9 @@ jobs:
           git add "$COMMIT_HASH_FILE"
           git commit -m "update to $commit: https://github.com/NationalSecurityAgency/ghidra/tree/$commit"
           git push origin HEAD
+
+      - name: Add tag
+        run: |
+          TAG_NAME="snapshot-$(date +%Y-%m-%d-%H)"
+          git tag -a "$TAG_NAME" -m "-m "tag to build $commit: https://github.com/NationalSecurityAgency/ghidra/tree/$commit"
+          git push origin "$TAG_NAME"
