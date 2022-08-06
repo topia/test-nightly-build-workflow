@@ -22,7 +22,9 @@ jobs:
           COMMIT_HASH_FILE=last-commit-hash
           echo "$commit" > "$COMMIT_HASH_FILE"
           git add "$COMMIT_HASH_FILE"
-          git commit -m "update to $commit: https://github.com/NationalSecurityAgency/ghidra/tree/$commit" && git push origin HEAD
+          if git commit -m "update to $commit: https://github.com/NationalSecurityAgency/ghidra/tree/$commit"; then
+            git push origin HEAD
+          fi
 
       - name: Add tag
         run: |
