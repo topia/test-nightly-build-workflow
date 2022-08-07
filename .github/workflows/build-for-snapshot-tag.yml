@@ -5,7 +5,7 @@ on:
     branches-ignore:
       - "*"
     tags:
-      - "snapshot-*"
+      - "snapshot-**"
 
 jobs:
   query-target-commit:
