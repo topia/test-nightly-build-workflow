@@ -1,0 +1,85 @@
+name: build-for-snapshot-tag
+
+on:
+  push:
+    branches-ignore:
+      - "*"
+    tags:
+      - "snapshot-*"
+
+jobs:
+  query-target-commit:
+    runs-on: ubuntu-latest
+    env:
+      COMMIT_HASH_FILE: last-commit-hash
+    outputs:
+      commit-hash: ${{ steps.query-commit-hash.outputs.commit-hash }}
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: query commit hash
+        run: |
+          echo "::set-output name=commit-hash::$(cat $COMMIT_HASH_FILE)"
+          
+  build:
+    needs: query-target-commit
+    env:
+      GITHUB_REPO_URL: https://github.com/NationalSecurityAgency/ghidra/
+      GITHUB_REPO: NationalSecurityAgency/ghidra
+      TARGET_COMMIT_HASH: ${{ needs.query-target-commit.outputs.commit-hash }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-22.04, macos-12]
+    # The type of runner that the job will run on
+    runs-on: ${{ matrix.os }}
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ env.GITHUB_REPO }}
+          ref: ${{ env.TARGET_COMMIT_HASH }}
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          java-package: jdk # optional (jdk, jre, jdk+fx or jre+fx) - defaults to jdk
+          check-latest: true
+          cache: 'gradle'
+      
+      - name: Cache
+        uses: actions/cache@v3
+        with:
+          path: dependencies
+          key: ghidra-dependencies
+
+      # Runs a set of commands using the runners shell
+      - name: fetch-deps
+        run: |
+          gradle -I gradle/support/fetchDependencies.gradle init --no-daemon
+          
+      # Runs a set of commands using the runners shell
+      - name: build
+        run: |
+          gradle buildGhidra --no-daemon
+          
+      - name: find artifact name
+        id: find-artifact-name
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const globber = await glob.create('build/dist/*.zip')
+            const files = await globber.glob()
+            return files[0].split(/[\/\\]/).pop()
+          result-encoding: string
+          
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body: |
+            created snapshot with ${{ env.TARGET_COMMIT_HASH }}: ${{ env.GITHUB_REPO_URL }}tree/${{ env.TARGET_COMMIT_HASH }}
+          files: build/dist/${{ steps.find-artifact-name.outputs.result }}
+        
+          
