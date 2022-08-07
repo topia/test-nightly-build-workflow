@@ -2,10 +2,8 @@ name: build-for-snapshot-tag
 
 on:
   push:
-    branches-ignore:
-      - "*"
     tags:
-      - "snapshot-**"
+      - snapshot-**
 
 jobs:
   query-target-commit:
