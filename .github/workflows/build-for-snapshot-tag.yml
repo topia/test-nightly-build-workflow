@@ -19,7 +19,7 @@ jobs:
       - name: query commit hash
         id: query-commit-hash
         run: |
-          echo "::set-output name=commit-hash::$(cat $COMMIT_HASH_FILE)"
+          echo "commit-hash=$(cat $COMMIT_HASH_FILE)" >> $GITHUB_OUTPUT
           
   build:
     needs: query-target-commit
