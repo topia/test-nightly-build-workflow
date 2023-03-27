@@ -1,6 +1,7 @@
 name: build-for-snapshot-tag
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - snapshot-**
