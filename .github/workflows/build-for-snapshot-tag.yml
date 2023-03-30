@@ -29,7 +29,7 @@ jobs:
       TARGET_COMMIT_HASH: ${{ needs.query-target-commit.outputs.commit-hash }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-22.04, macos-12]
+        os: [windows-latest, ubuntu-20.04, macos-12]
     runs-on: ${{ matrix.os }}
 
     steps:
