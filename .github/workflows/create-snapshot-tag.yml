@@ -1,0 +1,36 @@
+name: create-snapshot-tag
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * 5"
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/create-snapshot-tag.yml
+      
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      COMMIT_HASH_FILE: last-commit-hash
+      
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Add tag
+        run: |
+          git config --global user.email "13070+topia@users.noreply.github.com"
+          git config --global user.name "Tatsuya Noda"
+          commit="$(cat $COMMIT_HASH_FILE)"
+          git log -n1 -q -- $COMMIT_HASH_FILE
+          commit_datehour="$(git log -n1 --format="%ci" -- $COMMIT_HASH_FILE | sed -e 's/:.*//;s/[ :]/-/g')"
+          TAG_NAME="snapshot-$commit_datehour"
+          git tag -a "$TAG_NAME" -m "tag to build $commit
+          
+          commit: $commit
+          tree: ${GITHUB_REPO_URL%/}/tree/$commit"
+          git push origin "$TAG_NAME"
