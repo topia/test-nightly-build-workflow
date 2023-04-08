@@ -3,7 +3,7 @@ name: check-update
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 3 * * *"
+    - cron: "0 3,15 * * *"
   push:
     branches:
       - main
@@ -30,13 +30,3 @@ jobs:
           if git commit -m "update to $commit: ${GITHUB_REPO_URL%/}/tree/$commit"; then
             git push origin HEAD
           fi
-
-      - name: Add tag
-        run: |
-          commit="$(cat $COMMIT_HASH_FILE)"
-          TAG_NAME="snapshot-$(date +%Y-%m-%d-%H)"
-          git tag -a "$TAG_NAME" -m "tag to build $commit
-          
-          commit: $commit
-          tree: ${GITHUB_REPO_URL%/}/tree/$commit"
-          git push origin "$TAG_NAME"
