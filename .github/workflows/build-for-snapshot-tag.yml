@@ -5,6 +5,9 @@ on:
   push:
     tags:
       - snapshot-**
+  pull_request:
+    branches:
+      - main
 
 jobs:
   query-target-commit:
@@ -27,6 +30,11 @@ jobs:
       GITHUB_REPO_URL: https://github.com/NationalSecurityAgency/ghidra/
       GITHUB_REPO: NationalSecurityAgency/ghidra
       TARGET_COMMIT_HASH: ${{ needs.query-target-commit.outputs.commit-hash }}
+    outputs:
+      github-repo-url: ${{ env.GITHUB_REPO_URL }}
+      github-repo: ${{ env.GITHUB_REPO }}
+      commit-hash: ${{ needs.query-target-commit.outputs.commit-hash }}
+      oses: windows macos ubuntu
     strategy:
       matrix:
         os: [windows-latest, ubuntu-20.04, macos-12]
@@ -52,12 +60,10 @@ jobs:
           path: dependencies
           key: ghidra-dependencies
 
-      # Runs a set of commands using the runners shell
       - name: fetch-deps
         run: |
           gradle -I gradle/support/fetchDependencies.gradle init --no-daemon
           
-      # Runs a set of commands using the runners shell
       - name: build
         run: |
           gradle buildGhidra --no-daemon
@@ -71,12 +77,66 @@ jobs:
             const files = await globber.glob()
             return files[0].split(/[\/\\]/).pop()
           result-encoding: string
+
+      - name: find os basename
+        id: find-os-basename
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const os = '${{ matrix.os }}'
+            return os.split('-')[0]
+          result-encoding: string
+
+      - name: upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.find-os-basename.outputs.result }}
+          path: build/dist/${{ steps.find-artifact-name.outputs.result }}
+          retention-days: 1
           
-      - name: Release
+      - name: update-release
         uses: softprops/action-gh-release@v1
+        if: startsWith(github.action_ref, 'refs/tags/')
         with:
           body: |
             created snapshot with ${{ env.TARGET_COMMIT_HASH }}: ${{ env.GITHUB_REPO_URL }}tree/${{ env.TARGET_COMMIT_HASH }}
           files: build/dist/${{ steps.find-artifact-name.outputs.result }}
         
-          
+  merge:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      oses: ${{ needs.build.outputs.oses }}
+
+    steps:
+      - name: download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: merge artifacts
+        id: merge-artifacts
+        run: |
+          mkdir -p merged
+          for os in $oses; do
+            unzip -o artifacts/$os/*.zip -d merged
+          done
+          # TODO: merge Extensions/Eclipse/*/*.zip
+          mkdir -p artifacts/merged
+          (cd merged && zip -9 -r ../artifacts/merged/ghidra.zip *)
+          basename=$(basename artifacts/windows/*.zip .zip | sed -e 's/_win.*//')
+          mv artifacts/merged/ghidra.zip artifacts/merged/$basename.zip
+          echo "output-name=$basename.zip" >> $GITHUB_OUTPUT
+
+      - name: upload merged artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: merged
+          path: artifacts/merged
+          retention-days: 1
+
+      - name: update-release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.action_ref, 'refs/tags/')
+        with:
+          files: artifacts/merged/${{ steps.merge-artifacts.outputs.output-name }}
