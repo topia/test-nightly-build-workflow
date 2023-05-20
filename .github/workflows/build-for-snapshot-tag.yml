@@ -30,7 +30,10 @@ jobs:
       GITHUB_REPO_URL: https://github.com/NationalSecurityAgency/ghidra/
       GITHUB_REPO: NationalSecurityAgency/ghidra
       TARGET_COMMIT_HASH: ${{ needs.query-target-commit.outputs.commit-hash }}
-      LLVM_VERSION: 16.0.1
+      LLVM_VERSION_UBUNTU: 16.0.4 22.04
+      LLVM_VERSION_WINDOWS: 16.0.4
+      LLVM_VERSION_MACOS: 15.0.7
+      LLVM_VERSION: WILL OVERWRITE IN Determine environment
     outputs:
       github-repo-url: ${{ env.GITHUB_REPO_URL }}
       github-repo: ${{ env.GITHUB_REPO }}
@@ -55,13 +58,36 @@ jobs:
           check-latest: true
           cache: 'gradle'
 
+      - name: Determine environment
+        id: environ
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const os = '${{ matrix.os }}'.split('-')[0];
+            core.setOutput('os', os);
+            let llvm_version = {
+              ubuntu: process.env['LLVM_VERSION_UBUNTU'],
+              windows: process.env['LLVM_VERSION_WINDOWS'],
+              macos: process.env['LLVM_VERSION_MACOS'],
+            }[os] || null;
+            if (llvm_version.includes(' ')) {
+              const parsed = llvm_version.split(' ', 2);
+              llvm_version = parsed[0];
+              core.setOutput('ubuntu_version', parsed[1]);
+            } else {
+              core.setOutput('ubuntu_version', '');
+            }
+            core.setOutput('llvm_version', llvm_version);
+            core.exportVariable('LLVM_VERSION', llvm_version);
+          result-encoding: string
+
       - name: Cache
         uses: actions/cache@v3
         with:
           path: dependencies
           key: ghidra-dependencies
 
-      - name: Cache LLVM and Clang
+      - name: Cache LLVM
         id: cache-llvm
         uses: actions/cache@v3
         with:
@@ -75,7 +101,7 @@ jobs:
         with:
           version: ${{ env.LLVM_VERSION }}
           force-version: true
-          ubuntu-version: 20.04
+          ubuntu-version: ${{ steps.environ.outputs.ubuntu_version }}
           cached: ${{ steps.cache-llvm.outputs.cache-hit }}
 
       - name: update-llvm-env
@@ -100,15 +126,6 @@ jobs:
             return files[0].split(/[\/\\]/).pop()
           result-encoding: string
 
-      - name: find os basename
-        id: find-os-basename
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const os = '${{ matrix.os }}'
-            return os.split('-')[0]
-          result-encoding: string
-
       - name: update-release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
@@ -120,7 +137,7 @@ jobs:
       - name: upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ steps.find-os-basename.outputs.result }}
+          name: ${{ steps.environ.outputs.os }}
           path: build/dist/${{ steps.find-artifact-name.outputs.result }}
           retention-days: 1
 
