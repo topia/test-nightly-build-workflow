@@ -30,6 +30,7 @@ jobs:
       GITHUB_REPO_URL: https://github.com/NationalSecurityAgency/ghidra/
       GITHUB_REPO: NationalSecurityAgency/ghidra
       TARGET_COMMIT_HASH: ${{ needs.query-target-commit.outputs.commit-hash }}
+      LLVM_VERSION: 16
     outputs:
       github-repo-url: ${{ env.GITHUB_REPO_URL }}
       github-repo: ${{ env.GITHUB_REPO }}
@@ -53,12 +54,17 @@ jobs:
           java-package: jdk # optional (jdk, jre, jdk+fx or jre+fx) - defaults to jdk
           check-latest: true
           cache: 'gradle'
-      
+
       - name: Cache
         uses: actions/cache@v3
         with:
           path: dependencies
           key: ghidra-dependencies
+
+      - name: Install LLVM
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: ${{ env.LLVM_VERSION }}
 
       - name: fetch-deps
         run: |
