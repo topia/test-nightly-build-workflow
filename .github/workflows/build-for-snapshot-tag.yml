@@ -17,7 +17,7 @@ jobs:
     outputs:
       commit-hash: ${{ steps.query-commit-hash.outputs.commit-hash }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: query commit hash
         id: query-commit-hash
@@ -41,7 +41,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: ${{ env.GITHUB_REPO }}
           ref: ${{ env.TARGET_COMMIT_HASH }}
