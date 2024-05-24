@@ -53,6 +53,12 @@ jobs:
           java-package: jdk # optional (jdk, jre, jdk+fx or jre+fx) - defaults to jdk
           check-latest: true
           cache: 'gradle'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          check-latest: true
+          update-environment: true          
       
       - name: Cache
         uses: actions/cache@v4
