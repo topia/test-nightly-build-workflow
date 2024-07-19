@@ -68,7 +68,7 @@ jobs:
 
       - name: fetch-deps
         run: |
-          gradle -I gradle/support/fetchDependencies.gradle init --no-daemon
+          gradle -I gradle/support/fetchDependencies.gradle --no-daemon
           
       - name: build
         run: |
