@@ -102,7 +102,7 @@ jobs:
           files: build/dist/${{ steps.find-artifact-name.outputs.result }}
 
       - name: upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ steps.find-os-basename.outputs.result }}
           path: build/dist/${{ steps.find-artifact-name.outputs.result }}
@@ -141,7 +141,7 @@ jobs:
           files: artifacts/merged/${{ steps.merge-artifacts.outputs.output-name }}
 
       - name: upload merged artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: merged
           path: artifacts/merged
