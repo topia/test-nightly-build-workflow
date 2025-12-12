@@ -37,7 +37,7 @@ jobs:
       oses: windows macos ubuntu
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-22.04, macos-13]
+        os: [windows-latest, ubuntu-22.04, macos-14]
     runs-on: ${{ matrix.os }}
 
     steps:
