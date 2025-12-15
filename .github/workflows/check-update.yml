@@ -19,7 +19,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-      
+        with:
+          ssh-key: ${{ secrets.TAGGING_KEY }}
+          
       - name: Update to latest hash
         run: |
           git config --global user.email "13070+topia@users.noreply.github.com"
