@@ -50,7 +50,7 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
-          java-version: '21'
+          java-version: '25'
           java-package: jdk # optional (jdk, jre, jdk+fx or jre+fx) - defaults to jdk
           check-latest: true
           cache: 'gradle'
