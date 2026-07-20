@@ -18,7 +18,7 @@ jobs:
       GITHUB_REPO_URL: https://github.com/NationalSecurityAgency/ghidra/
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ssh-key: ${{ secrets.TAGGING_KEY }}
           
